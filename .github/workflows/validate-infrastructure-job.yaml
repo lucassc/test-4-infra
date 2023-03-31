@@ -1,0 +1,18 @@
+name: Validate Infrastrucure state
+
+on:
+  push:
+  pull_request:
+  # schedule:
+  # - cron: "0 5 * * *"
+
+jobs:
+  run-validations:
+    name: Run validations
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Run Ansible tests
+        run: ansible-playbook ./ansible/azure/playbook.yaml

@@ -4,6 +4,20 @@ Structure to validate and test desired Azure infrasctructure states
 
 This repository contains a set of validation scripts for testing Azure infrastructure. These scripts can be used as part of a CI/CD pipeline to ensure that changes made to your infrastructure as code do not break your environment.
 
+## First Diagram
+
+![infra-4-test azure: first diagram](./docs/images/infra-4-test-azure-first-diagram.png)
+
+# Getting Started
+
+To use this validation tool, you will need to have the following prerequisites:
+
+ - Azure CLI
+ - Ansible: `python3 -m pip install --user ansible`
+    
+
+Once you have these prerequisites installed, you can clone this repository to your local machine and navigate to the root directory.
+
 # Github Actions Pipelines
 
 This repository is configured with Github Actions pipelines that can be used to run the validation scripts automatically.
