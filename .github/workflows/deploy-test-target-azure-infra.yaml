@@ -3,11 +3,11 @@ name: Deploy Test Target Azure Infrastructure
 on:
   push:
     paths:
-      - "environments-4-test/azure/*"
+      - "tests/target-environments/azure/*"
       - ".github/workflows/deploy-test-target-azure-infra.yaml"
   pull_request:
     paths:
-      - "environments-4-test/azure/*"
+      - "tests/target-environments/azure/*"
       - ".github/workflows/deploy-test-target-azure-infra.yaml"
 
 permissions:
@@ -17,7 +17,7 @@ permissions:
 defaults:
   run:
     shell: bash
-    working-directory: ./environments-4-test/azure
+    working-directory: ./tests/target-environments/azure
 
 jobs:
   deploy-test-target:

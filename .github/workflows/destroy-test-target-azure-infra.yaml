@@ -12,7 +12,7 @@ permissions:
 defaults:
   run:
     shell: bash
-    working-directory: ./environments-4-test/azure
+    working-directory: ./tests/target-environments/azure
 
 jobs:
   destroy-test-target:
