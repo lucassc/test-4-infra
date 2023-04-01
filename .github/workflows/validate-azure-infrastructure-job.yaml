@@ -1,14 +1,12 @@
-name: Validate Infrastrucure state
+name: Validate Infrastructure state
 
 on:
   push:
   pull_request:
-  # schedule:
-  # - cron: "0 5 * * *"
 
 permissions:
-      id-token: write
-      contents: read
+  id-token: write
+  contents: read
 
 jobs:
   run-validations:
@@ -19,12 +17,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: 'Az CLI login'
+      - name: "Az CLI login"
         uses: azure/login@v1
         with:
-            client-id: ${{ secrets.AZURE_CLIENT_ID }}
-            tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-            subscription-id: ${{ vars.AZURE_SUBSCRIPTION_NAME }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_NAME }}
 
       - name: Run Ansible tests
         run: ansible-playbook ./ansible/azure/playbook.yaml
