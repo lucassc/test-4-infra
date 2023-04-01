@@ -12,7 +12,7 @@ This repository contains a set of validation scripts for testing Azure infrastru
 
 To use this validation tool, you will need to have the following prerequisites:
 
- - Azure CLI
+ - [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)
  - Ansible: `python3 -m pip install --user ansible`
     
 
