@@ -1,5 +1,5 @@
 - name: My first play
-  hosts: localhost
+  hosts: jumpstation
   tasks:
     - name: Ping my hosts
       ansible.builtin.ping:

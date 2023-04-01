@@ -1,0 +1,6 @@
+[jumpstation]
+private-jump-station ansible_host=127.0.0.1 ansible_port=2222
+
+[all:vars] 
+ansible_ssh_private_key_file=./jump-station/jump-station-vm_key.pem
+ansible_user=azureuser

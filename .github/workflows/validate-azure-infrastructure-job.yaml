@@ -8,6 +8,15 @@ permissions:
   id-token: write
   contents: read
 
+defaults:
+  run:
+    shell: bash
+    working-directory: ./src/ansible/azure
+
+env:
+  JUMP_STATION_NAME: "test-4-infra-dev-jump-station-vm"
+  JUMP_STATION_DIRECTORY: ./src/ansible/azure/jump-station
+
 jobs:
   run-validations:
     name: Run validations
@@ -17,6 +26,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform Init
+        run: terraform init --backend-config=backend.config
+        working-directory: ${{ env.JUMP_STATION_DIRECTORY }}
+        env:
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Create Jump Station -> Terraform Apply
+        run: terraform apply -auto-approve -var="jump_station_name=${{ env.JUMP_STATION_NAME }}"
+        working-directory: ${{ env.JUMP_STATION_DIRECTORY }}
+        env:
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
       - name: "Az CLI login"
         uses: azure/login@v1
         with:
@@ -24,5 +52,56 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_NAME }}
 
+      - name: Install Bastion az cli extension
+        run: az extension add --name bastion
+
+      - name: Open Bastion Tunnel
+        run: |
+          nohup az network bastion tunnel \
+            --name test-target-dev-bastion \
+            --resource-group test-target-dev-bastion-rg \
+            --target-resource-id /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/test-target-dev-jump-station-rg/providers/Microsoft.Compute/virtualMachines/${{ env.JUMP_STATION_NAME }} \
+            --resource-port 22 --port 2222 2>&1 & echo $! > bastion-tunnel.pid
+
+          sleep 5s
+
       - name: Run Ansible tests
-        run: ansible-playbook ./ansible/azure/playbook.yaml
+        run: ansible-playbook ./playbook.yaml -i ./hosts
+        env:
+          PY_COLORS: '1'
+          ANSIBLE_FORCE_COLOR: '1'
+
+      - name: Close Bastion Tunnel
+        if: ${{ success() }} || ${{ failure() }}
+        run: kill $(cat bastion-tunnel.pid)
+
+  destroy-dependencies:
+    name: Destroy Jump Station
+    needs:
+      - run-validations
+    if: ${{ success() }} || ${{ failure() }}
+    runs-on: ubuntu-latest
+
+    environment: azure-test-target
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform Init
+        run: terraform init --backend-config=backend.config
+        working-directory: ${{ env.JUMP_STATION_DIRECTORY }}
+        env:
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve -var="jump_station_name=${{ env.JUMP_STATION_NAME }}"
+        working-directory: ${{ env.JUMP_STATION_DIRECTORY }}
+        env:
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
